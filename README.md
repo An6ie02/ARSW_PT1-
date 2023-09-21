@@ -1,4 +1,5 @@
 
+### Angie Natalia Mojica
 ### Escuela Colombiana de Ingeniería
 ### Arquitecturas de Software - ARSW
 ## Ejercicio Fórmula BBP - Parcial Practico
