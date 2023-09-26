@@ -1,9 +1,6 @@
 package edu.eci.arsw.math;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-
-public class DigitThread extends Thread{
+public class DigitThread extends Thread {
     
     private int start;
     private int count;
@@ -13,7 +10,7 @@ public class DigitThread extends Thread{
     
     public DigitThread(int start, int countEnd) {
         this.start = start;
-        this.count = 0;
+        this.count = countEnd;
         this.digits = new byte[countEnd];
     }
 
@@ -109,11 +106,6 @@ public class DigitThread extends Thread{
 
     public byte[] getDigits() {
         return digits;
-    }
-
-    @Override
-    public String toString() {
-        return "DigitThread [digits=" + Arrays.toString(digits) + "]";
     }
 
 }

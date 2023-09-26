@@ -1,5 +1,6 @@
 package edu.eci.arsw.math;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 ///  <summary>
@@ -16,26 +17,39 @@ public class PiDigits {
      * @param count The number of digits to return
      * @param N The number of threads 
      */
-    public static void getDigits(int start, int count, int N) {
+    public static byte[] getDigits(int start, int count, int N) {
         
         int totalCalculate = count / N;
         LinkedList<DigitThread> threads = new LinkedList<>();
+        ArrayList<Byte> digitT = new ArrayList<Byte>();
+        byte[] result = new byte[count];
 
         for (int i = 0; i < N; i++) {
             int starts = start + (totalCalculate*i);
+            totalCalculate = i == (N - 1) ? count - (totalCalculate*i): totalCalculate;
             DigitThread threadI = new DigitThread(starts, totalCalculate);
             threads.add(threadI);
             threadI.start();
         }
 
         for (DigitThread thread : threads) {
+
             try {
                 thread.join();
+                ArrayList<Byte> byteList = new ArrayList<Byte>();
+                for (byte b: thread.getDigits()) {
+                    byteList.add(b);
+                }
+                digitT.addAll(byteList);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println(thread.getDigits());
         }
+
+        for (int i = 0; i < digitT.size(); i++) {
+        result[i] = digitT.get(i);
+    }
+        return result;
         
     }
  
