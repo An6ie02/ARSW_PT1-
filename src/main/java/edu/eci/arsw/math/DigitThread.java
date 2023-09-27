@@ -11,7 +11,6 @@ public class DigitThread extends Thread {
     private ArrayList<Byte> digits;
     private Object lock;
     private boolean running;
-    private int currentDigits;
     
     public DigitThread(int start, int countEnd, Object lock) {
         this.start = start;
@@ -19,12 +18,12 @@ public class DigitThread extends Thread {
         this.digits = new ArrayList<>();
         this.lock = lock;
         this.running = true;
-        this.currentDigits = 0;
     }
 
     @Override
     public void run() {
-        long inicialTime = System.currentTimeMillis(); //devuelve la hora actual del sistema en milisegundos
+        //devuelve la hora actual del sistema en milisegundos, hora de inicio del hilo
+        long inicialTime = System.currentTimeMillis(); 
         if (start < 0) {
             throw new RuntimeException("Invalid Interval");
         }
@@ -35,7 +34,7 @@ public class DigitThread extends Thread {
         double sum = 0;
 
         for (int i = 0; i < count; i++) {
-            currentDigits = i;
+            //Se verifica que no han pasado los 5 segundos reglamentarios de ejecucio y se procede a hacer el calculo de los digitos
             if (System.currentTimeMillis() - inicialTime <= 5000) {
                 if (i % DigitsPerSum == 0) {
                     sum = 4 * sum(1, start)
@@ -48,12 +47,12 @@ public class DigitThread extends Thread {
 
                 sum = 16 * (sum - Math.floor(sum));
                 digits.add((byte) sum);
-            } else {
-                running = false;
-                synchronized(lock) {
+            } else { //Si han pasado mas de 5 segundos
+                running = false; //Se le indica al hilo que debe detenerse
+                synchronized(lock) { //Se controla el acceso 
                     while(!running) {
                         try {
-                            lock.wait();
+                            lock.wait(); //Esto suspende el hilo y lo coloca en un estado de espera hasta que sea notificado
                             inicialTime = System.currentTimeMillis(); //Se reinicia el tiempo de inicio de ejecucion del hilo
                         } catch (InterruptedException e) {
                             e.printStackTrace();
@@ -130,10 +129,6 @@ public class DigitThread extends Thread {
 
     public ArrayList<Byte> getDigits() {
         return digits;
-    }
-
-    public int getCurrentDigits() {
-        return currentDigits;
     }
 
 }

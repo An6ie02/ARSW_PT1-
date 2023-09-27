@@ -20,31 +20,33 @@ public class PiDigits {
      */
     public static ArrayList<Byte> getDigits(int start, int count, int N) {
         
-        int totalCalculate = count / N;
+        int totalCalculate = count / N; // Cantidad de numeros que calcula cada hilo
         LinkedList<DigitThread> threads = new LinkedList<>();
-        
-        //byte[] result = new byte[count];
-        ArrayList<Byte> result = new ArrayList<>();
-
         Object lock = new Object();
-        boolean anyThreadRunning = true;
+        boolean anyThreadRunning = true; //Al menos un hilo esta en ejecucion
         Scanner sc = new Scanner(System.in);
         int currentNumberDigits = 0;
         ArrayList<Byte> digitT;
         
-        for (int i = 0; i < N; i++) {
-            int starts = start + (totalCalculate*i);
+        for (int i = 0; i < N; i++) { // Por el numero de hilos solicitados
+            /**El valor de inicio del hilo va cambiando en cada iteración: se va sumando el total de
+            numeros que han sido calculos por otros hilos(i)
+            **/
+            int starts = start + (totalCalculate*i); 
+            // Ajusta la cantidad de numeros que calculara el ultimo hilo, asegura que calcule los numeros 
+            //restantes para llegar al valor total count.
             totalCalculate = i == (N - 1) ? count - (totalCalculate*i): totalCalculate;
+            //Se crea y agrega el hilo a la lista de hilos
             DigitThread threadI = new DigitThread(starts, totalCalculate, lock);
             threads.add(threadI);
             threadI.start();
         }
-
+        //Mientras que hayan hilos en ejecucion
         while(anyThreadRunning) {
             try {
-                anyThreadRunning = false;
+                anyThreadRunning = false; //Se asume que no hay hilos en ejecucion para luego verificar si los hay
                 for (DigitThread thread : threads) {
-                    if (thread.isAlive()) {
+                    if (thread.isAlive()) { // determina si un hilo esta vivo
                         anyThreadRunning = true;
                         break;
                     }
@@ -54,13 +56,13 @@ public class PiDigits {
                 e.printStackTrace();
             }
 
-            digitT = getBytes(threads);
             currentNumberDigits = 0;
+            //Se muestran la cantidad de digitos calculados hasta el momento de todos los threads
             for(DigitThread thread: threads) {
                 currentNumberDigits += thread.getDigits().size();
             }
             System.out.println("Cantidad calculada: " + currentNumberDigits);
-            // Se espera que el usuario haga Enter para reanudar los hilos
+            // Se espera que el usuario haga Enter para reanudar los hilos una vez verificado que hayan hilos en ejecucion
             if(anyThreadRunning) {
                 System.out.println("Press ENTER to continue...");
                 sc.nextLine();
@@ -69,10 +71,16 @@ public class PiDigits {
                 }
             }
         }
+        //Se obtienen los resultados finales
         digitT = getBytes(threads);
         return digitT;
     }
 
+    /**
+     * Obtiene la lista de digitos pi calculados
+     * @param threads
+     * @return lista de los bytes calculados
+     */
     public static ArrayList<Byte> getBytes(LinkedList<DigitThread> threads) {
         ArrayList<Byte> digitT = new ArrayList<Byte>();
         for (DigitThread thread: threads) {
