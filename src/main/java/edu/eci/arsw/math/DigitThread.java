@@ -1,21 +1,30 @@
 package edu.eci.arsw.math;
 
+import java.util.ArrayList;
+
 public class DigitThread extends Thread {
     
     private int start;
     private int count;
     private static int DigitsPerSum = 8;
     private static double Epsilon = 1e-17;
-    private byte[] digits;
+    private ArrayList<Byte> digits;
+    private Object lock;
+    private boolean running;
+    private int currentDigits;
     
-    public DigitThread(int start, int countEnd) {
+    public DigitThread(int start, int countEnd, Object lock) {
         this.start = start;
         this.count = countEnd;
-        this.digits = new byte[countEnd];
+        this.digits = new ArrayList<>();
+        this.lock = lock;
+        this.running = true;
+        this.currentDigits = 0;
     }
 
     @Override
     public void run() {
+        long inicialTime = System.currentTimeMillis(); //devuelve la hora actual del sistema en milisegundos
         if (start < 0) {
             throw new RuntimeException("Invalid Interval");
         }
@@ -26,17 +35,32 @@ public class DigitThread extends Thread {
         double sum = 0;
 
         for (int i = 0; i < count; i++) {
-            if (i % DigitsPerSum == 0) {
-                sum = 4 * sum(1, start)
-                        - 2 * sum(4, start)
-                        - sum(5, start)
-                        - sum(6, start);
+            currentDigits = i;
+            if (System.currentTimeMillis() - inicialTime <= 5000) {
+                if (i % DigitsPerSum == 0) {
+                    sum = 4 * sum(1, start)
+                            - 2 * sum(4, start)
+                            - sum(5, start)
+                            - sum(6, start);
 
-                start += DigitsPerSum;
+                    start += DigitsPerSum;
+                }
+
+                sum = 16 * (sum - Math.floor(sum));
+                digits.add((byte) sum);
+            } else {
+                running = false;
+                synchronized(lock) {
+                    while(!running) {
+                        try {
+                            lock.wait();
+                            inicialTime = System.currentTimeMillis(); //Se reinicia el tiempo de inicio de ejecucion del hilo
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
             }
-
-            sum = 16 * (sum - Math.floor(sum));
-            digits[i] = (byte) sum;
         }
         
     }
@@ -104,8 +128,12 @@ public class DigitThread extends Thread {
         return result;
     }
 
-    public byte[] getDigits() {
+    public ArrayList<Byte> getDigits() {
         return digits;
+    }
+
+    public int getCurrentDigits() {
+        return currentDigits;
     }
 
 }
